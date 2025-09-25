@@ -1,5 +1,5 @@
 {
-  "name": "@powersync/mysql-zongji",
+  "name": "@samas1503/zongji",
   "version": "0.5.0",
   "description": "A MySQL 8.0 >= compatible fork of ZongJi - a MySQL binlog listener for Node.js.",
   "main": "index.js",
