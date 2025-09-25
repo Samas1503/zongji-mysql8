@@ -33,12 +33,15 @@ util.inherits(ZongJi, EventEmitter);
 // dsn - can be one instance of Connection or Pool / object / url string
 ZongJi.prototype._establishConnection = function (dsn) {
   const createConnection = (options) => {
-    let connection = mysql.createConnection(options);
+    let connection = mysql.createConnection({
+      ...options,
+      authPlugins: {
+        caching_sha2_password: mysql.authPlugins.caching_sha2_password
+      }
+    });
+
     connection.on('error', this.emit.bind(this, 'error'));
     connection.on('unhandledError', this.emit.bind(this, 'error'));
-    // don't need to call connection.connect() here
-    // we use implicitly established connection
-    // see https://github.com/mysqljs/mysql#establishing-connections
     return connection;
   };
 
@@ -46,15 +49,13 @@ ZongJi.prototype._establishConnection = function (dsn) {
   let binlogDsn;
 
   if (typeof dsn === 'object' && configFunc) {
-    // dsn is a pool or connection object
-    let conn = dsn; // reuse as ctrlConnection
+    let conn = dsn; 
     this.ctrlConnection = conn;
     this.ctrlConnectionOwner = false;
     binlogDsn = Object.assign({}, configFunc(conn));
   }
 
   if (!binlogDsn) {
-    // assuming that the object passed is the connection settings
     this.ctrlConnectionOwner = true;
     this.ctrlConnection = createConnection(dsn);
     binlogDsn = dsn;
@@ -62,6 +63,7 @@ ZongJi.prototype._establishConnection = function (dsn) {
 
   this.connection = createConnection(binlogDsn);
 };
+
 
 ZongJi.prototype._isChecksumEnabled = function (next) {
   const SelectChecksumParamSql = 'select @@GLOBAL.binlog_checksum as checksum';
