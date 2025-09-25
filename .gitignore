@@ -27,3 +27,6 @@ npm-install-stamp
 ben.js
 .vagrant
 Vagrantfile
+
+# test
+test.js

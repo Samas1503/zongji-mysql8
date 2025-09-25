@@ -27,12 +27,16 @@ util.inherits(ZongJi, EventEmitter);
 
 // Crear conexión mysql2 con soporte caching_sha2_password
 ZongJi.prototype._establishConnection = function (dsn) {
+  if (!dsn || typeof dsn !== 'object') {
+    throw new Error('DSN inválido. Debe ser un objeto con host, user, password, database, port');
+  }
+
+  // Solo pasar las propiedades válidas a mysql2
+  const validOptions = (({ host, user, password, database, port }) => ({ host, user, password, database, port }))(dsn);
+
   const createConnection = (options) => {
     const connection = mysql.createConnection({
       ...options,
-      authPlugins: {
-        caching_sha2_password: mysql.authPlugins.caching_sha2_password
-      }
     });
 
     connection.on('error', this.emit.bind(this, 'error'));
@@ -41,8 +45,8 @@ ZongJi.prototype._establishConnection = function (dsn) {
   };
 
   this.ctrlConnectionOwner = true;
-  this.ctrlConnection = createConnection(dsn);
-  this.connection = createConnection(dsn);
+  this.ctrlConnection = createConnection(validOptions);
+  this.connection = createConnection(validOptions);
 };
 
 // Checksum
